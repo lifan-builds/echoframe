@@ -62,6 +62,12 @@ from scripts.stage_cloud_bundle import (  # noqa: E402
     stage_cloud_bundle,
 )
 from scripts.sync_amazon_photos import sync_delta_to_amazon_photos  # noqa: E402
+from scripts.deploy_webos_tv import (  # noqa: E402
+    DEFAULT_STAGE_DIR as DEFAULT_TV_STAGE_DIR,
+    deploy_to_tv,
+    export_tv_bundle,
+    resolve_tv_ip,
+)
 
 
 def refresh_catalog(usb_daemon_dir: Path, catalog_path: Path, gateway_url: str) -> Dict[str, Any]:
@@ -101,6 +107,9 @@ def run_refresh(
     stage_cloud: bool = False,
     push_cloud: bool = False,
     deploy_worker: bool = False,
+    sync_tv: bool = False,
+    tv_ip: str = "",
+    tv_stage_dir: Path = DEFAULT_TV_STAGE_DIR,
 ) -> Dict[str, Any]:
     """Execute the end-to-end Mac refresh workflow safely and idempotently."""
     upgraded_count = 0
@@ -163,6 +172,13 @@ def run_refresh(
                 deploy_worker=deploy_worker,
             )
 
+    tv_summary = None
+    if sync_tv:
+        resolved_tv_ip = resolve_tv_ip(tv_ip or None)
+        tv_summary = export_tv_bundle(album_dir=album_dir, stage_dir=tv_stage_dir)
+        deploy_to_tv(resolved_tv_ip, tv_stage_dir, install_ipk=False)
+        tv_summary["tv_ip"] = resolved_tv_ip
+
     manifest = json.loads((album_dir / "manifest.json").read_text(encoding="utf-8"))
     stats = manifest.get("stats") or {}
 
@@ -175,6 +191,7 @@ def run_refresh(
         "amazon_sync": amazon_sync_result,
         "cloud_stage": cloud_summary,
         "cloud_push": cloud_push_result,
+        "tv_sync": tv_summary,
         "access_key_file": str(key_file) if (stage_cloud or push_cloud) else None,
     }
 
@@ -198,6 +215,8 @@ def main() -> None:
     parser.add_argument("--push-cloud", action="store_true", help="Optional explicit opt-in: push changed objects to private Cloudflare R2")
     parser.add_argument("--deploy-worker", action="store_true", help="With --push-cloud, also run `wrangler deploy` for Worker/web code")
     parser.add_argument("--bucket", default=DEFAULT_BUCKET_NAME)
+    parser.add_argument("--sync-tv", action="store_true", help="Export and delta-sync 1080p slides directly onto LG webOS TV storage")
+    parser.add_argument("--tv-ip", default="", help="LG webOS TV IPv4 address for --sync-tv")
     args = parser.parse_args()
 
     result = run_refresh(
@@ -213,6 +232,8 @@ def main() -> None:
         stage_cloud=args.stage_cloud,
         push_cloud=args.push_cloud,
         deploy_worker=args.deploy_worker,
+        sync_tv=args.sync_tv,
+        tv_ip=args.tv_ip,
     )
 
     amz = result["amazon_export"]
@@ -237,6 +258,12 @@ def main() -> None:
         )
         if result["cloud_push"]:
             print(f"   - Cloud push:     {json.dumps(result['cloud_push'])}", flush=True)
+    if result.get("tv_sync"):
+        tvs = result["tv_sync"]
+        print(
+            f"4. LG webOS TV:      {tvs['total_slides']} slides synced to {tvs['tv_ip']} ({tvs['total_mb']} MB, {tvs['ambient_slides']} in Ambient Mix)",
+            flush=True,
+        )
 
     if args.open_amazon_photos:
         reveal_dir = amz["delta_dir"] if amz["pending_amazon_upload_count"] > 0 else amz["export_dir"]

@@ -79,6 +79,18 @@ python3 scripts/serve_album.py --host "$WIFI_IP" --port 8765
 
 To deploy an always-on private edge mirror on Cloudflare Workers + R2 (`$0/mo` free tier), copy `wrangler.jsonc.example` to `wrangler.jsonc` and run `python3 scripts/stage_cloud_bundle.py --generate-key` + `--push`.
 
+### 6. Optional: Rooted LG webOS TV Idle Screensaver, No Signal Gallery & TV App
+
+If you have a rooted LG webOS TV (webOS 5+ with Homebrew / Telnet), you can deploy all curated slides as `1920×1080` `16:9` baseline JPEGs directly onto TV internal storage (`/media/developer/echoframe`) for 24/7 offline playback with zero Mac required:
+
+```bash
+python3 scripts/deploy_webos_tv.py --tv-ip <TV_IP>
+```
+
+- **System Idle Screensaver (`com.webos.app.screensaver`):** Boot-persistent `mount --bind` QML overlay with dual-`Image` crossfades, dominant-color matte, captions, and clock pill.
+- **No Signal HDMI Screen (`com.webos.app.inputcommon`):** Full-screen `16:9` `Ambient Mix` photo slideshow on unused inputs.
+- **Launchable `EchoFrame` TV App (`com.echoframe.webos`) + LAN Remote:** Local Node.js server on port `18663` serving `/`, `/gallery`, and `/remote` over home Wi-Fi.
+
 ---
 
 ## Repository Layout
@@ -89,6 +101,7 @@ To deploy an always-on private edge mirror on Cloudflare Workers + R2 (`$0/mo` f
 | `scripts/export_amazon_photos.py` | Lossless EXIF `DateTimeOriginal` injector, solo-portrait `16:10` gallery matter, and SHA-256 incremental delta exporter |
 | `scripts/configure_alexa_ad_free.py` | Alexa `behaviors/automations` 3-hour Photo Frame scheduler, live preview trigger, and DNS sinkhole verifier |
 | `scripts/serve_album.py` | Zero-dependency multi-device HTTP server (`/`, `/gallery`, `/remote`, semantic/lexical search, display heartbeats) |
+| `scripts/deploy_webos_tv.py` + `webos/` | Standalone LG webOS TV exporter/deployer (QML idle screensaver, No Signal full-screen gallery, local `:18663` server, and `com.echoframe.webos` `.ipk` app) |
 | `scripts/stage_cloud_bundle.py` + `cloudflare/worker.js` | Private 256-bit token-gated Cloudflare Worker + `float16` edge vector search + Private R2 sync |
 | `scripts/instant_share.py` + `whisperlink_info.py` | Account-free Echo Show Gen 1 Silk Instant Share J-PAKE launcher (`NIST-3072`) & read-only WhisperLink discovery |
 | `swift/USBCameraBridge.swift` | Read-only macOS `ImageCaptureCore` iPhone USB catalog, `640px` thumbnail, and `2048px` master downloader |
@@ -102,6 +115,7 @@ node --check web/sw.js
 node --check web/gallery.js
 node --check web/remote.js
 node --check cloudflare/worker.js
+node --check webos/tv_server.js
 ```
 
 ## License

@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1920, height=1080, initial-scale=1">
+  <title>EchoFrame</title>
+  <style>
+    @font-face {
+      font-family: "Instrument Serif";
+      src: url("http://127.0.0.1:18663/fonts/InstrumentSerif-Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Manrope";
+      src: url("http://127.0.0.1:18663/fonts/Manrope-Variable.ttf") format("truetype");
+      font-weight: 300 800;
+      font-style: normal;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: #080a0f;
+      color: #f5f2eb;
+      font-family: "Manrope", "LG Smart UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    #stage {
+      position: fixed;
+      top: 0; left: 0; width: 1920px; height: 1080px;
+      background: #080a0f;
+      overflow: hidden;
+    }
+    #ambient-glow {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(ellipse at 50% 50%, rgba(36, 46, 62, 0.42) 0%, rgba(8, 10, 15, 0.98) 76%);
+      transition: background 900ms ease-out;
+    }
+    .slide-layer {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 850ms cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: opacity;
+    }
+    .slide-layer.is-visible { opacity: 1; }
+    #caption-plate {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      padding: 64px 60px 44px;
+      background: linear-gradient(to top, rgba(6, 8, 12, 0.84) 0%, rgba(6, 8, 12, 0.38) 58%, rgba(6, 8, 12, 0) 100%);
+      pointer-events: none;
+      transition: opacity 400ms ease-out;
+    }
+    #caption-title {
+      margin: 0;
+      max-width: 1220px;
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: 42px;
+      font-weight: 400;
+      line-height: 1.16;
+      color: #f5f2eb;
+      text-shadow: 0 2px 14px rgba(0, 0, 0, 0.65);
+    }
+    #caption-meta {
+      margin: 10px 0 0;
+      font-size: 21px;
+      letter-spacing: 0.04em;
+      color: #d4cfc3;
+      text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+    }
+    #clock-pill {
+      position: absolute;
+      top: 38px;
+      right: 46px;
+      padding: 10px 22px;
+      border-radius: 999px;
+      background: rgba(11, 14, 19, 0.56);
+      border: 1px solid rgba(245, 242, 235, 0.18);
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: #f5f2eb;
+    }
+    #toast {
+      position: absolute;
+      top: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 14px 28px;
+      border-radius: 999px;
+      background: rgba(14, 18, 26, 0.88);
+      border: 1px solid rgba(231, 188, 121, 0.45);
+      color: #f5f2eb;
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      opacity: 0;
+      transition: opacity 240ms ease;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 20;
+    }
+    #toast.is-shown { opacity: 1; }
+    #hint-bar {
+      position: absolute;
+      right: 48px;
+      bottom: 42px;
+      padding: 10px 20px;
+      border-radius: 999px;
+      background: rgba(11, 14, 19, 0.72);
+      border: 1px solid rgba(245, 242, 235, 0.14);
+      font-size: 18px;
+      color: #c8c2b6;
+      opacity: 0;
+      transition: opacity 400ms ease;
+      pointer-events: none;
+      z-index: 15;
+    }
+    #hint-bar.is-shown { opacity: 1; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <div id="ambient-glow"></div>
+    <img id="photo-a" class="slide-layer is-visible" alt="" hidden>
+    <img id="photo-b" class="slide-layer" alt="" hidden>
+    <div id="clock-pill" hidden></div>
+    <div id="caption-plate" hidden>
+      <p id="caption-title"></p>
+      <p id="caption-meta"></p>
+    </div>
+    <div id="toast"></div>
+    <div id="hint-bar">◀ ▶ Photo · ▲ ▼ Channel · OK Pause · Red Captions · Back Exit</div>
+  </div>
+  <script>
+    (function () {
+      'use strict';
+      var API_BASE = 'http://127.0.0.1:18663';
+      var slides = [];
+      var channels = [];
+      var activeChannel = 'smart_frame';
+      var index = 0;
+      var activeSlot = 'a';
+      var paused = false;
+      var intervalSec = 15;
+      var showCaptions = true;
+      var showClock = true;
+      var serverRevision = -1;
+      var lastCommandSeq = 0;
+      var slideTimer = null;
+      var toastTimer = null;
+      var hintTimer = null;
+
+      function el(id) { return document.getElementById(id); }
+
+      function showToast(msg) {
+        var t = el('toast');
+        t.textContent = msg;
+        t.className = 'is-shown';
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { t.className = ''; }, 2400);
+      }
+
+      function flashHints() {
+        var h = el('hint-bar');
+        h.className = 'is-shown';
+        clearTimeout(hintTimer);
+        hintTimer = setTimeout(function () { h.className = ''; }, 6000);
+      }
+
+      function requestJson(method, path, bodyObj, cb) {
+        var xhr = new XMLHttpRequest();
+        xhr.open(method, API_BASE + path, true);
+        xhr.timeout = 6000;
+        if (bodyObj) xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onload = function () {
+          if (xhr.status < 200 || xhr.status >= 300) return cb(new Error('HTTP ' + xhr.status));
+          try { cb(null, JSON.parse(xhr.responseText)); } catch (e) { cb(e); }
+        };
+        xhr.onerror = xhr.ontimeout = function () { cb(new Error('Network error')); };
+        xhr.send(bodyObj ? JSON.stringify(bodyObj) : null);
+      }
+
+      function updateClock() {
+        var pill = el('clock-pill');
+        if (!showClock || !slides.length) { pill.hidden = true; return; }
+        var now = new Date();
+        var h = now.getHours();
+        var m = now.getMinutes();
+        var ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12;
+        if (h === 0) h = 12;
+        pill.textContent = h + ':' + (m < 10 ? '0' + m : m) + ' ' + ampm;
+        pill.hidden = false;
+      }
+
+      function applyAmbient(rgb) {
+        var r = (rgb && rgb[0]) || 28;
+        var g = (rgb && rgb[1]) || 36;
+        var b = (rgb && rgb[2]) || 48;
+        el('ambient-glow').style.background =
+          'radial-gradient(ellipse at 50% 50%, rgba(' + r + ',' + g + ',' + b + ',0.38) 0%, rgba(8,10,15,0.98) 76%)';
+      }
+
+      function renderCurrent() {
+        if (!slides.length) return;
+        if (index < 0 || index >= slides.length) index = 0;
+        var s = slides[index];
+        var imgUrl = API_BASE + s.src;
+
+        var incomingId = activeSlot === 'a' ? 'photo-b' : 'photo-a';
+        var outgoingId = activeSlot === 'a' ? 'photo-a' : 'photo-b';
+        var incoming = el(incomingId);
+        var outgoing = el(outgoingId);
+
+        incoming.onload = function () {
+          incoming.hidden = false;
+          incoming.className = 'slide-layer is-visible';
+          outgoing.className = 'slide-layer';
+          activeSlot = incomingId === 'photo-a' ? 'a' : 'b';
+        };
+        incoming.onerror = function () {
+          if (slides.length > 1) move(1);
+        };
+        incoming.src = imgUrl;
+
+        applyAmbient(s.accent_rgb);
+
+        var plate = el('caption-plate');
+        var cap = s.display_caption || s.label || '';
+        var metaParts = [];
+        if (s.date_label) metaParts.push(s.date_label);
+        if (s.age_badge) metaParts.push(s.age_badge);
+        if (showCaptions && (cap || metaParts.length)) {
+          el('caption-title').textContent = cap;
+          el('caption-meta').textContent = metaParts.join('  ·  ');
+          plate.hidden = false;
+        } else {
+          plate.hidden = true;
+        }
+        updateClock();
+      }
+
+      function scheduleAdvance() {
+        clearInterval(slideTimer);
+        slideTimer = null;
+        if (!paused && slides.length > 1) {
+          slideTimer = setInterval(function () { move(1); }, Math.max(5, intervalSec) * 1000);
+        }
+      }
+
+      function move(delta) {
+        if (!slides.length) return;
+        index = (index + delta + slides.length) % slides.length;
+        renderCurrent();
+        scheduleAdvance();
+      }
+
+      function shuffleSlides() {
+        for (var i = slides.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var tmp = slides[i];
+          slides[i] = slides[j];
+          slides[j] = tmp;
+        }
+        index = 0;
+        renderCurrent();
+        scheduleAdvance();
+      }
+
+      function channelNameFor(chId) {
+        for (var i = 0; i < channels.length; i++) {
+          if (channels[i].id === chId) return channels[i].name;
+        }
+        return chId;
+      }
+
+      function applyState(st, isInitial) {
+        if (!st) return;
+        serverRevision = st.revision || 0;
+        channels = st.channels || [];
+        activeChannel = st.active_channel || 'smart_frame';
+        intervalSec = st.interval_sec || 15;
+        paused = Boolean(st.paused);
+        showCaptions = st.show_captions !== false;
+        showClock = st.show_clock !== false;
+
+        var prevId = slides[index] ? slides[index].id : '';
+        var nextSlides = st.slides || [];
+        var listChanged = isInitial || nextSlides.length !== slides.length ||
+          (nextSlides.length && slides.length && nextSlides[0].id !== slides[0].id);
+
+        if (listChanged) {
+          slides = nextSlides.slice();
+          if (isInitial) {
+            for (var k = slides.length - 1; k > 0; k--) {
+              var r = Math.floor(Math.random() * (k + 1));
+              var t = slides[k]; slides[k] = slides[r]; slides[r] = t;
+            }
+            index = 0;
+          } else if (prevId) {
+            var found = 0;
+            for (var m = 0; m < slides.length; m++) {
+              if (slides[m].id === prevId) { found = m; break; }
+            }
+            index = found;
+          } else {
+            index = 0;
+          }
+        }
+
+        var cmd = st.command || {};
+        if (cmd.seq && cmd.seq !== lastCommandSeq) {
+          lastCommandSeq = cmd.seq;
+          if (!isInitial) {
+            if (cmd.action === 'next') index = (index + 1) % Math.max(1, slides.length);
+            else if (cmd.action === 'prev') index = (index - 1 + slides.length) % Math.max(1, slides.length);
+            else if (cmd.action === 'goto' && cmd.slide_id) {
+              for (var g = 0; g < slides.length; g++) {
+                if (slides[g].id === cmd.slide_id) { index = g; break; }
+              }
+            }
+          }
+        }
+
+        renderCurrent();
+        scheduleAdvance();
+      }
+
+      function pollState(isInitial) {
+        var cur = slides[index];
+        var qs = '?role=tv_app';
+        if (cur && cur.id) qs += '&slide=' + encodeURIComponent(cur.id);
+        if (cur && cur.display_caption) qs += '&caption=' + encodeURIComponent(cur.display_caption);
+        requestJson('GET', '/api/state' + qs, null, function (err, st) {
+          if (err || !st) {
+            if (isInitial) showToast('Waiting for EchoFrame service…');
+            return;
+          }
+          if (isInitial || st.revision !== serverRevision) {
+            applyState(st, isInitial);
+            if (isInitial) {
+              showToast(channelNameFor(activeChannel) + ' · ' + slides.length + ' photos');
+              flashHints();
+            }
+          }
+        });
+      }
+
+      function cycleChannel(delta) {
+        if (!channels.length) return;
+        var curIdx = 0;
+        for (var i = 0; i < channels.length; i++) {
+          if (channels[i].id === activeChannel) { curIdx = i; break; }
+        }
+        var nextCh = channels[(curIdx + delta + channels.length) % channels.length];
+        if (!nextCh) return;
+        requestJson('POST', '/api/control', { channel: nextCh.id }, function (err, resp) {
+          if (!err && resp && resp.state) {
+            applyState(resp.state, false);
+            showToast(nextCh.name + ' (' + slides.length + ')');
+          }
+        });
+      }
+
+      function cycleInterval() {
+        var steps = [10, 15, 30, 60];
+        var idx = steps.indexOf(intervalSec);
+        var nextSec = steps[(idx + 1) % steps.length];
+        requestJson('POST', '/api/control', { interval_sec: nextSec }, function (err, resp) {
+          if (!err && resp && resp.state) {
+            applyState(resp.state, false);
+            showToast('Cadence: ' + nextSec + 's');
+          }
+        });
+      }
+
+      document.addEventListener('keydown', function (ev) {
+        var code = ev.keyCode || ev.which;
+        if (code === 39 || code === 33) {
+          move(1);
+        } else if (code === 37 || code === 34) {
+          move(-1);
+        } else if (code === 38) {
+          cycleChannel(-1);
+        } else if (code === 40 || code === 404) {
+          cycleChannel(1);
+        } else if (code === 13 || code === 32 || code === 415 || code === 19 || code === 179) {
+          paused = !paused;
+          scheduleAdvance();
+          showToast(paused ? 'Paused' : 'Playing');
+          requestJson('POST', '/api/control', { paused: paused }, function () {});
+        } else if (code === 403 || code === 457 || code === 67) {
+          showCaptions = !showCaptions;
+          showClock = showCaptions;
+          renderCurrent();
+          showToast(showCaptions ? 'Captions & Clock: On' : 'Captions & Clock: Off');
+          requestJson('POST', '/api/control', { show_captions: showCaptions, show_clock: showClock }, function () {});
+        } else if (code === 405) {
+          shuffleSlides();
+          showToast('Shuffled');
+        } else if (code === 406) {
+          cycleInterval();
+        } else if (code === 461 || code === 27) {
+          try {
+            if (window.webOSSystem && window.webOSSystem.deactivate) {
+              window.webOSSystem.deactivate();
+            } else {
+              window.close();
+            }
+          } catch (e) { window.close(); }
+        }
+      });
+
+      /* Keep webOS idle screensaver from interrupting when user explicitly launches EchoFrame */
+      try {
+        if (typeof WebOSServiceBridge !== 'undefined') {
+          var ssBridge = new WebOSServiceBridge();
+          ssBridge.onservicecallback = function (msg) {
+            try {
+              var data = JSON.parse(msg);
+              if (data && data.timestamp) {
+                var ackBridge = new WebOSServiceBridge();
+                ackBridge.call('luna://com.webos.service.tvpower/power/responseScreenSaverRequest', JSON.stringify({
+                  clientName: 'com.echoframe.webos',
+                  ack: false,
+                  timestamp: data.timestamp
+                }));
+              }
+            } catch (e) {}
+          };
+          ssBridge.call('luna://com.webos.service.tvpower/power/registerScreenSaverRequest', JSON.stringify({
+            subscribe: true,
+            clientName: 'com.echoframe.webos'
+          }));
+        }
+      } catch (e) {}
+
+      pollState(true);
+      setInterval(function () { pollState(false); }, 5000);
+      setInterval(updateClock, 15000);
+    }());
+  </script>
+</body>
+</html>

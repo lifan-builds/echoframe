@@ -1,0 +1,18 @@
+{
+  "id": "com.echoframe.webos",
+  "version": "1.0.0",
+  "vendor": "EchoFrame",
+  "type": "web",
+  "main": "index.html",
+  "title": "EchoFrame",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "iconColor": "#1e2636",
+  "bgColor": "#080a0f",
+  "resolution": "1920x1080",
+  "disableBackHistoryAPI": true,
+  "handlesRelaunch": false,
+  "requiredPermissions": [
+    "all"
+  ]
+}
