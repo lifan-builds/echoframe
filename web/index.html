@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="referrer" content="no-referrer">
+  <title>Ambient Photo Frame</title>
+  <link rel="stylesheet" href="/album.css">
+  <script defer src="/album.js"></script>
+</head>
+<body>
+  <main id="frame-root">
+    <div id="stage">
+      <div id="ambient-glow" aria-hidden="true"></div>
+      <img id="photo-a" class="slide-layer is-visible" alt="" hidden>
+      <img id="photo-b" class="slide-layer" alt="" hidden>
+
+      <div id="demo">
+        <h1>Room for<br>your memories.</h1>
+        <p id="demo-note">Local Wi-Fi ambient frame · Ready when your album loads</p>
+      </div>
+
+      <div id="clock-pill" hidden aria-live="off"></div>
+
+      <figcaption id="caption-plate" hidden>
+        <p id="caption-title"></p>
+        <p id="caption-meta"></p>
+      </figcaption>
+    </div>
+
+    <section id="setup" aria-label="Start album">
+      <h2>Your photos, on your home Wi-Fi.</h2>
+      <p id="intro">Loading curated album…</p>
+      <label class="keep-row" for="keep-open">
+        <input id="keep-open" type="checkbox">
+        <span>Play silent keep-open audio track <em>(optional for Silk)</em></span>
+      </label>
+      <button id="start" type="button" disabled>Start album</button>
+      <p id="notice" role="status">Zero cloud storage. Remote control at <code>/remote</code> · Browse at <code>/gallery</code></p>
+    </section>
+
+    <button id="show-controls" type="button" hidden aria-controls="controls" aria-expanded="false">Controls</button>
+
+    <nav id="controls" aria-label="Album controls" hidden>
+      <div class="ctrl-group">
+        <button id="previous" type="button">
+          <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M12.5 4.5L7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Previous</span>
+        </button>
+        <button id="pause" type="button">Pause</button>
+        <button id="next" type="button">
+          <span>Next</span>
+          <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M7.5 4.5L13 10l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="ctrl-group">
+        <select id="channel-select" aria-label="Channel"></select>
+        <button id="toggle-captions" type="button">Captions: On</button>
+        <button id="fullscreen" type="button">Full screen</button>
+        <button id="hide-controls" type="button">Done</button>
+      </div>
+      <div class="ctrl-status">
+        <span id="counter"></span>
+        <span id="connection" role="status"></span>
+      </div>
+    </nav>
+
+    <audio id="keepalive" src="/silence.wav" loop preload="none" aria-hidden="true"></audio>
+  </main>
+</body>
+</html>

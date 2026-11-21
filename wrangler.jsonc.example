@@ -1,0 +1,23 @@
+{
+  // Private Always-On Ambient Photo Frame (Cloudflare Worker + Private R2 Bucket).
+  // Generate & upload your 256-bit FRAME_ACCESS_KEY secret before deploying:
+  //   python3 scripts/stage_cloud_bundle.py --generate-key
+  //   npx wrangler secret put FRAME_ACCESS_KEY < ~/.local/share/alexa-photos/cloud_access_key
+  "name": "echoframe-private",
+  "main": "cloudflare/worker.js",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./web",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+  "r2_buckets": [
+    {
+      "binding": "ALBUM_BUCKET",
+      "bucket_name": "echoframe-private"
+    }
+  ]
+}

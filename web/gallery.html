@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="referrer" content="no-referrer">
+  <title>Home Gallery · Ambient Photo Frame</title>
+  <link rel="stylesheet" href="/app.css">
+  <script defer src="/gallery.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand-block">
+      <h1>Home Gallery</h1>
+      <p class="brand-sub" id="album-summary">Curated iPhone photographs &amp; portrait diptychs served strictly on local Wi-Fi.</p>
+    </div>
+    <nav class="nav-links" aria-label="Views">
+      <a class="nav-pill" href="/?autostart=1">
+        <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"/><circle cx="7" cy="8.5" r="1.3" fill="currentColor"/><path d="M4.5 14l4-3.5 3 2.5 4-4.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Display Frame</span>
+      </a>
+      <a class="nav-pill" href="/gallery" aria-current="page">Gallery</a>
+      <a class="nav-pill" href="/remote">
+        <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><rect x="5.5" y="2.5" width="9" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"/><circle cx="10" cy="14" r="1" fill="currentColor"/></svg>
+        <span>Pocket Remote</span>
+      </a>
+    </nav>
+  </header>
+
+  <main class="gallery-shell">
+    <div class="command-deck">
+      <form class="search-form" id="search-form" role="search">
+        <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M13 13l4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+        <input id="search-input" class="search-input" type="search" placeholder="Search by memory, mood, or season — e.g. snowy ski trip, baby cuddle, beach sunset" autocomplete="off">
+        <button id="clear-search" class="btn" type="button" hidden>Clear</button>
+        <button class="btn" type="submit">Search</button>
+      </form>
+      <button id="cast-btn" class="btn btn-primary" type="button">
+        <svg viewBox="0 0 20 20" width="17" height="17" aria-hidden="true"><path d="M3 6V4.5A1.5 1.5 0 014.5 3h11A1.5 1.5 0 0117 4.5v11a1.5 1.5 0 01-1.5 1.5H12" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><path d="M3 14a3 3 0 013 3M3 10.5A6.5 6.5 0 019.5 17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+        <span id="cast-label">Cast Channel to Display</span>
+      </button>
+    </div>
+
+    <div class="prompt-suggestions" aria-label="Sample semantic searches">
+      <button class="prompt-chip" type="button" data-query="snowy mountain ski trip">Snowy mountain ski trip</button>
+      <button class="prompt-chip" type="button" data-query="warm family smiles and cuddles">Family smiles</button>
+      <button class="prompt-chip" type="button" data-query="golden beach sunset by the ocean">Golden beach sunset</button>
+      <button class="prompt-chip" type="button" data-query="shared family dinner and celebratory toast">Shared family dinner</button>
+      <button class="prompt-chip" type="button" data-query="curly brown dog portrait">Fluffy dog moments</button>
+      <button class="prompt-chip" type="button" data-query="spring cherry blossoms and flowers">Spring blossoms</button>
+    </div>
+
+    <div id="channel-strip" class="channel-strip" role="tablist" aria-label="Curated channels"></div>
+
+    <div class="live-banner" id="live-banner">
+      <span id="live-status">Checking active frame channel…</span>
+      <span id="view-count" class="tabular"></span>
+    </div>
+
+    <section id="photo-wall" class="photo-wall" aria-label="Curated photographs"></section>
+
+    <div id="empty-state" class="empty-state" hidden>
+      <h2>No matching slides in this view</h2>
+      <p>Try another semantic phrase or switch back to Ambient Mix.</p>
+    </div>
+  </main>
+
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-labelledby="lb-title" hidden>
+    <div class="lightbox-panel">
+      <div class="lightbox-stage">
+        <img id="lb-img" alt="">
+      </div>
+      <div class="lightbox-footer">
+        <div class="lightbox-info">
+          <h2 id="lb-title"></h2>
+          <p id="lb-meta"></p>
+        </div>
+        <div class="lightbox-actions">
+          <button id="lb-cast-one" class="btn btn-primary" type="button">Show on Frame Now</button>
+          <button id="lb-hide" class="btn btn-danger" type="button">Hide from Frame</button>
+          <button id="lb-close" class="btn" type="button">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>
