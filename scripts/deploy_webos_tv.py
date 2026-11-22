@@ -64,8 +64,8 @@ def resolve_tv_ip(cli_ip: Optional[str]) -> str:
             cfg = json.loads(TV_SYNC_CFG.read_text(encoding="utf-8"))
             if cfg.get("tvIp"):
                 return str(cfg["tvIp"]).strip()
-        except Exception:
-            pass
+        except (OSError, json.JSONDecodeError, TypeError) as exc:
+            print(f"Warning: could not read {TV_SYNC_CFG}: {exc}", file=sys.stderr)
     raise SystemExit("Pass --tv-ip <TV_IP> or set TV_IP.")
 
 
@@ -80,29 +80,32 @@ def get_local_ip(target_ip: str) -> str:
 
 def send_telnet_cmd(tv_ip: str, cmd: str, timeout_sec: float = 90.0) -> str:
     marker = "EF_DEPLOY__DONE"
-    s = socket.create_connection((tv_ip, 23), timeout=10)
-    s.settimeout(timeout_sec)
-    time.sleep(0.3)
-    try:
-        s.recv(4096)
-    except Exception:
-        pass
-    payload = f"{cmd}\necho EF_DEPLOY_\"\"_DONE\n".encode("utf-8")
-    s.sendall(payload)
-    res = b""
-    t0 = time.time()
-    while time.time() - t0 < timeout_sec:
+    marker_bytes = marker.encode("ascii")
+    with socket.create_connection((tv_ip, 23), timeout=10) as s:
+        s.settimeout(0.5)
+        time.sleep(0.3)
         try:
-            chunk = s.recv(8192)
+            s.recv(4096)
+        except socket.timeout:
+            pass
+        s.settimeout(timeout_sec)
+        payload = f"{cmd}\necho EF_DEPLOY_\"\"_DONE\n".encode("utf-8")
+        s.sendall(payload)
+        res = b""
+        t0 = time.time()
+        while time.time() - t0 < timeout_sec:
+            remaining = max(0.1, timeout_sec - (time.time() - t0))
+            s.settimeout(remaining)
+            try:
+                chunk = s.recv(8192)
+            except socket.timeout as exc:
+                raise TimeoutError(f"Telnet command timed out after {timeout_sec:.0f}s: {cmd[:80]}") from exc
             if not chunk:
-                break
+                raise ConnectionError(f"Telnet connection closed before completion marker: {cmd[:80]}")
             res += chunk
-            if marker.encode("ascii") in res:
-                break
-        except Exception:
-            break
-    s.close()
-    return res.decode("utf-8", errors="replace")
+            if marker_bytes in res:
+                return res.decode("utf-8", errors="replace")
+        raise TimeoutError(f"Telnet command timed out after {timeout_sec:.0f}s: {cmd[:80]}")
 
 
 def render_tv_1080p_jpeg(

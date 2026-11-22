@@ -83,7 +83,11 @@ function createEchoFrameApp(baseDir) {
       fs.writeFileSync(tmp, JSON.stringify(frameState, null, 2), 'utf8');
       fs.renameSync(tmp, statePath);
     } catch (e) {
-      try { fs.writeFileSync(statePath, JSON.stringify(frameState), 'utf8'); } catch (e2) {}
+      try {
+        fs.writeFileSync(statePath, JSON.stringify(frameState), 'utf8');
+      } catch (e2) {
+        console.error('[echoframe] Failed persisting state:', e2 && e2.message ? e2.message : e2);
+      }
     }
   }
 

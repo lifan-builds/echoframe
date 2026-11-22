@@ -11,6 +11,7 @@ from scripts.deploy_webos_tv import (
     export_tv_bundle,
     generate_screensaver_photo_list_js,
     render_tv_1080p_jpeg,
+    send_telnet_cmd,
 )
 
 
@@ -129,6 +130,36 @@ class TestWebOSTVDeploy(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(res.returncode, 0, msg=res.stderr + res.stdout)
+
+    def test_send_telnet_cmd_rejects_eof_without_marker(self) -> None:
+        from unittest import mock
+
+        class _FakeSock:
+            def __init__(self, chunks):
+                self._chunks = list(chunks)
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def settimeout(self, _t):
+                pass
+
+            def sendall(self, _data):
+                pass
+
+            def recv(self, _n):
+                return self._chunks.pop(0) if self._chunks else b""
+
+        with mock.patch("scripts.deploy_webos_tv.time.sleep"):
+            with mock.patch("scripts.deploy_webos_tv.socket.create_connection", return_value=_FakeSock([b"banner", b"partial", b""])):
+                with self.assertRaises(ConnectionError):
+                    send_telnet_cmd("127.0.0.1", "echo hi", timeout_sec=2.0)
+            with mock.patch("scripts.deploy_webos_tv.socket.create_connection", return_value=_FakeSock([b"banner", b"ok\nEF_DEPLOY__DONE\n"])):
+                out = send_telnet_cmd("127.0.0.1", "echo hi", timeout_sec=2.0)
+                self.assertIn("EF_DEPLOY__DONE", out)
 
 
 if __name__ == "__main__":
