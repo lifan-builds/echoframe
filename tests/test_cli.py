@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 lifan-builds. EchoFrame; Section 7 attribution terms in ATTRIBUTION.md.
 import io
 import subprocess
 import unittest
@@ -13,6 +15,15 @@ def fake_dig(answers):
         return subprocess.CompletedProcess(cmd, 0, stdout=answers[cmd[-1]], stderr="")
 
     return run
+
+
+class VersionTests(unittest.TestCase):
+    def test_version_prints_agpl_attribution(self):
+        out = io.StringIO()
+        with redirect_stdout(out), self.assertRaises(SystemExit) as exc:
+            cli.main(["--version"])
+        self.assertEqual(exc.exception.code, 0)
+        self.assertIn("Based on EchoFrame by lifan-builds (https://github.com/lifan-builds/echoframe)", out.getvalue())
 
 
 class AdCheckTests(unittest.TestCase):

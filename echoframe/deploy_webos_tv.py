@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 lifan-builds. EchoFrame; Section 7 attribution terms in ATTRIBUTION.md.
 """Export curated EchoFrame slides and deploy standalone idle screensaver, No Signal gallery,
 local HTTP server (:18663), and launchable webOS app (`com.echoframe.webos`) directly to a
 rooted LG webOS TV's internal storage (`/media/developer/echoframe`).

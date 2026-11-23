@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 lifan-builds. EchoFrame; Section 7 attribution terms in ATTRIBUTION.md.
 """Standard NIST-3072 J-PAKE group, as used by Silk / Bouncy Castle."""
 
 P = int(

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 lifan-builds. EchoFrame; Section 7 attribution terms in ATTRIBUTION.md.
 """Export a clean, deduplicated Amazon Photos upload bundle for standalone Echo Show playback.
 
 Reads `data/album/manifest.json` (plus `data/album/hidden.json` if present) and exports the

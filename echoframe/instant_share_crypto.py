@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 lifan-builds. EchoFrame; Section 7 attribution terms in ATTRIBUTION.md.
 """Experimental Silk Instant Share wire compatibility, not a general crypto library.
 
 J-PAKE SHA-256/NIST-3072 as observed in Silk's bundled Bouncy Castle classes.

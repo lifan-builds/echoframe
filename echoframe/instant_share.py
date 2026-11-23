@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 lifan-builds. EchoFrame; Section 7 attribution terms in ATTRIBUTION.md.
 """Experimental account-free Silk controller. Run: python3 -m echoframe.instant_share --help.
 
 Uses normal displayed-PIN pairing; no brute force, APK installation or exploit.

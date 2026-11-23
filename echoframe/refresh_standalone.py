@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 lifan-builds. EchoFrame; Section 7 attribution terms in ATTRIBUTION.md.
 """One-command occasional Mac refresh for standalone Echo Show & multi-device playback.
 
 Run this single command whenever you plug in your iPhone and open your MacBook, then

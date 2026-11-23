@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 lifan-builds. EchoFrame; Section 7 attribution terms in ATTRIBUTION.md.
 """Automated background sync of exported `Ambient Mix` JPEGs into Amazon Photos via `fmu`.
 
 Uses `faster-mac-use` (`mode="extension"`, `🤖 Agent` Chrome tab group, zero focus/cursor theft)

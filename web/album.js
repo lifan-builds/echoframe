@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (C) 2026 lifan-builds. EchoFrame; Section 7 attribution terms in ATTRIBUTION.md.
 /* Strictly ES5 syntax and XMLHttpRequest for Gen-1 Echo Show & Echo Show 5 Silk browsers. */
 (function () {
   'use strict';

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 lifan-builds. EchoFrame; Section 7 attribution terms in ATTRIBUTION.md.
 """Read-only WhisperLink discovery for an explicitly selected LAN device.
 
 Uses the advertised amzn.dmgr service, never starts media or registers services.

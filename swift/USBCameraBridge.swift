@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (C) 2026 lifan-builds. EchoFrame; Section 7 attribution terms in ATTRIBUTION.md.
 // Read-only macOS ImageCaptureCore iPhone USB catalog, 640px thumbnail, and 2048px original bridge.
 // Contains zero delete calls — strictly non-destructive access to a USB-connected iPhone.
 //

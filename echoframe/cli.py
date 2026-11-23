@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 lifan-builds. EchoFrame; Section 7 attribution terms in ATTRIBUTION.md.
 """EchoFrame command line: `echoframe ad-check | curate | export`.
 
 `data/` and `private/` are read from and written to the current directory.
@@ -8,7 +10,10 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from importlib.metadata import version
 from typing import List, Optional
+
+ATTRIBUTION = "Based on EchoFrame by lifan-builds (https://github.com/lifan-builds/echoframe)"
 
 
 def ad_check(argv: List[str]) -> int:
@@ -61,6 +66,11 @@ def main(argv: Optional[List[str]] = None) -> int:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="\n".join(f"  {name:<9} {help_}" for name, (_, help_) in COMMANDS.items()),
+    )
+    p.add_argument(
+        "--version",
+        action="version",
+        version=f"echoframe {version('echoframe')}\n{ATTRIBUTION}\nLicense: AGPL-3.0-only with Section 7 attribution terms (ATTRIBUTION.md)",
     )
     p.add_argument("command", choices=COMMANDS, metavar="command", help="one of: " + ", ".join(COMMANDS))
     p.add_argument("args", nargs=argparse.REMAINDER, help=argparse.SUPPRESS)
