@@ -4,7 +4,7 @@
 Run this single command whenever you plug in your iPhone and open your MacBook, then
 unplug your iPhone and close your Mac again:
 
-    python3 scripts/refresh_standalone.py
+    python3 -m echoframe.refresh_standalone
 
 Pipeline:
 1. Upgrade any remaining `thumb_640` curated photos to `2048px` masters via live
@@ -32,14 +32,14 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.export_amazon_photos import (  # noqa: E402
+from echoframe.export_amazon_photos import (  # noqa: E402
     AMAZON_PHOTOS_ALBUMS_URL,
     DEFAULT_DELTA_DIR,
     DEFAULT_EXPORT_DIR,
     DEFAULT_SYNC_STATE as DEFAULT_AMAZON_SYNC_STATE,
     export_amazon_photos_bundle,
 )
-from scripts.extract_iphone_album import (  # noqa: E402
+from echoframe.extract_iphone_album import (  # noqa: E402
     CURATOR_REPO,
     DEFAULT_CATALOG,
     DEFAULT_GATEWAY,
@@ -52,7 +52,7 @@ from scripts.extract_iphone_album import (  # noqa: E402
     run_pipeline,
     upgrade_originals_in_place,
 )
-from scripts.stage_cloud_bundle import (  # noqa: E402
+from echoframe.stage_cloud_bundle import (  # noqa: E402
     DEFAULT_BUCKET_NAME,
     DEFAULT_KEY_FILE,
     DEFAULT_STAGE_DIR,
@@ -61,8 +61,8 @@ from scripts.stage_cloud_bundle import (  # noqa: E402
     push_staged_bundle_to_cloudflare,
     stage_cloud_bundle,
 )
-from scripts.sync_amazon_photos import sync_delta_to_amazon_photos  # noqa: E402
-from scripts.deploy_webos_tv import (  # noqa: E402
+from echoframe.sync_amazon_photos import sync_delta_to_amazon_photos  # noqa: E402
+from echoframe.deploy_webos_tv import (  # noqa: E402
     DEFAULT_STAGE_DIR as DEFAULT_TV_STAGE_DIR,
     deploy_to_tv,
     export_tv_bundle,
@@ -72,7 +72,7 @@ from scripts.deploy_webos_tv import (  # noqa: E402
 
 def refresh_catalog(usb_daemon_dir: Path, catalog_path: Path, gateway_url: str) -> Dict[str, Any]:
     """Placeholder hook for custom external catalog pipelines (use `--source-dir` on `extract_iphone_album.py` for direct folders)."""
-    raise RuntimeError("Pass `--source-dir <folder>` to `scripts/extract_iphone_album.py` for standalone folder ingestion.")
+    raise RuntimeError("Pass `--source-dir <folder>` to `echoframe curate` for standalone folder ingestion.")
 
 
 def verify_or_rebuild_diptychs(album_dir: Path, force_rebuild: bool = False) -> int:

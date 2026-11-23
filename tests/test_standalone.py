@@ -9,9 +9,9 @@ import unittest
 import numpy as np
 from PIL import Image
 
-from scripts.export_amazon_photos import export_amazon_photos_bundle
-from scripts.refresh_standalone import run_refresh
-from scripts.stage_cloud_bundle import ensure_private_access_key, stage_cloud_bundle
+from echoframe.export_amazon_photos import export_amazon_photos_bundle
+from echoframe.refresh_standalone import run_refresh
+from echoframe.stage_cloud_bundle import ensure_private_access_key, stage_cloud_bundle
 
 ROOT = Path(__file__).resolve().parents[1]
 

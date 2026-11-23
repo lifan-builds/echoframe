@@ -26,8 +26,8 @@ except ImportError:  # pragma: no cover
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
-DEFAULT_CURATED_DIR = ROOT / "data" / "album"
-PROFILE_PATH = ROOT / "private" / "profile.json"
+DEFAULT_CURATED_DIR = Path.cwd() / "data" / "album"
+PROFILE_PATH = Path.cwd() / "private" / "profile.json"
 _PROFILE = json.loads(PROFILE_PATH.read_text(encoding="utf-8")) if PROFILE_PATH.is_file() else {}
 DEFAULT_GATEWAY = os.environ.get("OPENAI_BASE_URL") or _PROFILE.get("openai_base_url") or "https://api.openai.com/v1"
 GATEWAY_TOKEN = os.environ.get("OPENAI_API_KEY") or _PROFILE.get("openai_api_key") or ""

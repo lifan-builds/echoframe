@@ -4,10 +4,10 @@ local HTTP server (:18663), and launchable webOS app (`com.echoframe.webos`) dir
 rooted LG webOS TV's internal storage (`/media/developer/echoframe`).
 
 Usage:
-    python3 scripts/deploy_webos_tv.py --export-only
-    python3 scripts/deploy_webos_tv.py --tv-ip <TV_IP>
-    python3 scripts/deploy_webos_tv.py --tv-ip <TV_IP> --skip-ipk
-    python3 scripts/deploy_webos_tv.py --tv-ip <TV_IP> --uninstall
+    python3 -m echoframe.deploy_webos_tv --export-only
+    python3 -m echoframe.deploy_webos_tv --tv-ip <TV_IP>
+    python3 -m echoframe.deploy_webos_tv --tv-ip <TV_IP> --skip-ipk
+    python3 -m echoframe.deploy_webos_tv --tv-ip <TV_IP> --uninstall
 """
 
 from __future__ import annotations
@@ -35,11 +35,11 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.extract_iphone_album import compose_gallery_matte  # noqa: E402
-from scripts.serve_album import is_slide_hidden, load_hidden_ids  # noqa: E402
+from echoframe.extract_iphone_album import compose_gallery_matte  # noqa: E402
+from echoframe.serve_album import is_slide_hidden, load_hidden_ids  # noqa: E402
 
-DEFAULT_ALBUM_DIR = ROOT / "data" / "album"
-DEFAULT_STAGE_DIR = ROOT / "data" / "export" / "webos_tv"
+DEFAULT_ALBUM_DIR = Path.cwd() / "data" / "album"
+DEFAULT_STAGE_DIR = Path.cwd() / "data" / "export" / "webos_tv"
 WEBOS_SRC_DIR = ROOT / "webos"
 WEB_SRC_DIR = ROOT / "web"
 TV_SYNC_CFG = Path.home() / ".config" / "make-tv-great-again" / "sync_config.json"

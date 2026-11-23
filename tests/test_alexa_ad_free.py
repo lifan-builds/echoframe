@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from scripts.configure_alexa_ad_free import (
+from echoframe.configure_alexa_ad_free import (
     DEFAULT_SCHEDULE_SLOTS,
     build_photo_frame_sequence_json,
     build_schedule_trigger_json,

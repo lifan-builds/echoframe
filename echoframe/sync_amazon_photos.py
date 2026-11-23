@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.export_amazon_photos import (  # noqa: E402
+from echoframe.export_amazon_photos import (  # noqa: E402
     DEFAULT_ALBUM_DIR,
     DEFAULT_DELTA_DIR,
     DEFAULT_EXPORT_DIR,
@@ -31,7 +31,7 @@ from scripts.export_amazon_photos import (  # noqa: E402
     write_json_atomic,
 )
 
-PROFILE_PATH = ROOT / "private" / "profile.json"
+PROFILE_PATH = Path.cwd() / "private" / "profile.json"
 _PROFILE = json.loads(PROFILE_PATH.read_text(encoding="utf-8")) if PROFILE_PATH.is_file() else {}
 DEFAULT_AMAZON_ALBUM_ID = os.environ.get("AMAZON_ALBUM_ID") or _PROFILE.get("amazon_album_id") or ""
 DEFAULT_ALBUM_TITLE = os.environ.get("AMAZON_ALBUM_TITLE") or _PROFILE.get("amazon_album_title") or "Ambient Mix"

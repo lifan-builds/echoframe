@@ -7,9 +7,9 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from scripts.instant_share import authenticate, read_json_line, write_private
-from scripts.instant_share_crypto import Participant, decrypt_message, encode, encrypt_message, java_positive, salted_key, timestamp
-from scripts.instant_share_group import P, Q, G
+from echoframe.instant_share import authenticate, read_json_line, write_private
+from echoframe.instant_share_crypto import Participant, decrypt_message, encode, encrypt_message, java_positive, salted_key, timestamp
+from echoframe.instant_share_group import P, Q, G
 
 
 def exchange(pin_a="1234", pin_b="1234"):
@@ -106,7 +106,7 @@ class MessageTests(unittest.TestCase):
             salt = base64.b64decode(data["salt"])
             self.assertEqual(base64.b64decode(data["key"]), salted_key(key, salt))
             return {"status": 200, **encrypt_message(key, data)}
-        with patch("scripts.instant_share.rpc", side_effect=peer):
+        with patch("echoframe.instant_share.rpc", side_effect=peer):
             authenticate("192.0.2.1", 1234, "controller", key)
 
     def test_framing(self):

@@ -7,7 +7,7 @@ import unittest
 
 from PIL import Image
 
-from scripts.deploy_webos_tv import (
+from echoframe.deploy_webos_tv import (
     export_tv_bundle,
     generate_screensaver_photo_list_js,
     render_tv_1080p_jpeg,
@@ -153,11 +153,11 @@ class TestWebOSTVDeploy(unittest.TestCase):
             def recv(self, _n):
                 return self._chunks.pop(0) if self._chunks else b""
 
-        with mock.patch("scripts.deploy_webos_tv.time.sleep"):
-            with mock.patch("scripts.deploy_webos_tv.socket.create_connection", return_value=_FakeSock([b"banner", b"partial", b""])):
+        with mock.patch("echoframe.deploy_webos_tv.time.sleep"):
+            with mock.patch("echoframe.deploy_webos_tv.socket.create_connection", return_value=_FakeSock([b"banner", b"partial", b""])):
                 with self.assertRaises(ConnectionError):
                     send_telnet_cmd("127.0.0.1", "echo hi", timeout_sec=2.0)
-            with mock.patch("scripts.deploy_webos_tv.socket.create_connection", return_value=_FakeSock([b"banner", b"ok\nEF_DEPLOY__DONE\n"])):
+            with mock.patch("echoframe.deploy_webos_tv.socket.create_connection", return_value=_FakeSock([b"banner", b"ok\nEF_DEPLOY__DONE\n"])):
                 out = send_telnet_cmd("127.0.0.1", "echo hi", timeout_sec=2.0)
                 self.assertIn("EF_DEPLOY__DONE", out)
 

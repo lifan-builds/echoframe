@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.sync_amazon_photos import eval_in_chrome_tab, resolve_fmu_bin  # noqa: E402
+from echoframe.sync_amazon_photos import eval_in_chrome_tab, resolve_fmu_bin  # noqa: E402
 
 DEFAULT_DDNS_FILE = Path.home() / ".local" / "share" / "alexa-photos" / "nextdns_ddns.json"
 ROUTINE_PREFIX = "Ambient Photo Frame · "
@@ -226,29 +226,47 @@ def run_alexa_browser_op(mode: str, fmu_bin: Optional[Path] = None) -> Dict[str,
     return json.loads(json_line)
 
 
-def verify_dns_sinkhole(dns_ip: str) -> Dict[str, str]:
-    probes = (
-        "trck.ahs.prod-na.turntable.sonic.advertising.amazon.dev",
-        "prod.na.jet.amazon",
-        "aax-us-east.amazon-adsystem.com",
-        "unagi-na.amazon.com",
-        "m.media-amazon.com",
-        "avs-alexa-14-na.amazon.com",
-    )
-    out: Dict[str, str] = {}
-    for host in probes:
-        proc = subprocess.run(
-            ["dig", "+short", "+time=3", "+tries=1", f"@{dns_ip}", host],
-            capture_output=True,
-            text=True,
-            timeout=6,
-            check=False,
-        )
-        out[host] = " ".join(proc.stdout.strip().splitlines())
-    return out
+JUNO_AD_HOSTS: Tuple[str, ...] = (
+    "trck.ahs.prod-na.turntable.sonic.advertising.amazon.dev",
+    "prod.na.jet.amazon",
+    "aax-us-east.amazon-adsystem.com",
+    "unagi-na.amazon.com",
+)
+ALEXA_ALLOW_HOSTS: Tuple[str, ...] = (
+    "m.media-amazon.com",
+    "avs-alexa-14-na.amazon.com",
+)
+SINKHOLE_ADDRS = {"0.0.0.0", "127.0.0.1", "::", "::1"}
 
 
-def main() -> None:
+def classify_dig_answer(stdout: str) -> Tuple[str, List[str]]:
+    lines = [ln.strip() for ln in stdout.splitlines() if ln.strip()]
+    if any(ln.startswith(";") for ln in lines):
+        return "error", lines
+    addrs = [ln for ln in lines if not ln.endswith(".")]
+    if all(a in SINKHOLE_ADDRS for a in addrs):
+        return "blocked", lines
+    return "resolves", lines
+
+
+def verify_dns_sinkhole(dns_ip: Optional[str] = None) -> Dict[str, Any]:
+    server = [f"@{dns_ip}"] if dns_ip else []
+    probes: List[Dict[str, Any]] = []
+    for role, hosts, want in (("juno_ad", JUNO_AD_HOSTS, "blocked"), ("alexa_allow", ALEXA_ALLOW_HOSTS, "resolves")):
+        for host in hosts:
+            proc = subprocess.run(
+                ["dig", "+short", "+time=3", "+tries=1", *server, host],
+                capture_output=True,
+                text=True,
+                timeout=6,
+                check=False,
+            )
+            status, answers = classify_dig_answer(proc.stdout)
+            probes.append({"host": host, "role": role, "status": status, "answers": answers, "ok": status == want})
+    return {"dns_server": dns_ip or "system", "ok": all(p["ok"] for p in probes), "probes": probes}
+
+
+def main(argv: Optional[List[str]] = None) -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--status", action="store_true", help="Inspect Echo Show status & scheduled Photo Frame routines")
     p.add_argument("--trigger-now", action="store_true", help="Immediately start Photo Frame on all Echo Shows")
@@ -257,7 +275,7 @@ def main() -> None:
     p.add_argument("--refresh-ddns", action="store_true", help="Refresh NextDNS Linked-IP DDNS endpoint")
     p.add_argument("--verify-dns", metavar="DNS_IP", help="Verify ad-domain sinkholing & Alexa allowlist on DNS_IP")
     p.add_argument("--ddns-file", type=Path, default=DEFAULT_DDNS_FILE)
-    args = p.parse_args()
+    args = p.parse_args(argv)
 
     report: Dict[str, Any] = {}
     if args.refresh_ddns:

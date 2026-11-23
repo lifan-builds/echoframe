@@ -2,7 +2,7 @@ import struct
 import unittest
 from unittest.mock import patch
 
-from scripts.whisperlink_info import Reader, query, summarize_device
+from echoframe.whisperlink_info import Reader, query, summarize_device
 
 
 def text(value):
@@ -57,20 +57,20 @@ class WhisperLinkTests(unittest.TestCase):
         reply = struct.pack("!I", 0x80010002) + text("getFullDeviceInfo") + struct.pack("!i", 1)
         reply += b"\x0c\x00\x00\x0b\x00\x01" + text("Test Show") + b"\0\0"
         sock = FakeSocket([b"HTTP/1.0 200 ", b"OK\r\n\r\n", reply[:12], reply[12:]])
-        with patch("scripts.whisperlink_info.socket.create_connection", return_value=sock):
+        with patch("echoframe.whisperlink_info.socket.create_connection", return_value=sock):
             self.assertEqual(query("192.0.2.1", 1234, "test", "getFullDeviceInfo"), {"0": {"1": "Test Show"}})
         self.assertEqual(len(sock.sent), 2)
         self.assertIn(b"getFullDeviceInfo", sock.sent[1])
 
     def test_rejected_handshake_sends_no_rpc(self):
         sock = FakeSocket([b"HTTP/1.0 401 Fail\r\n\r\n"])
-        with patch("scripts.whisperlink_info.socket.create_connection", return_value=sock):
+        with patch("echoframe.whisperlink_info.socket.create_connection", return_value=sock):
             with self.assertRaises(ConnectionError):
                 query("192.0.2.1", 1234, "test", "getFullDeviceInfo")
         self.assertEqual(len(sock.sent), 1)
 
     def test_mutating_method_rejected_before_connect(self):
-        with patch("scripts.whisperlink_info.socket.create_connection") as connect:
+        with patch("echoframe.whisperlink_info.socket.create_connection") as connect:
             with self.assertRaises(ValueError):
                 query("192.0.2.1", 1234, "test", "setMediaSource")
             connect.assert_not_called()

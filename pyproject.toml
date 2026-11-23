@@ -1,3 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "echoframe"
+version = "0.1.0"
+description = "AI-curated, ad-free ambient photo album for Echo Show built from your iPhone library"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "LicenseRef-lifan-builds-Proprietary"
+license-files = ["LICENSE"]
+authors = [{ name = "lifan-builds" }]
+dependencies = ["numpy", "pillow"]
+
+[project.urls]
+Homepage = "https://clifan.com/echoframe/"
+Repository = "https://github.com/lifan-builds/echoframe"
+
+[project.scripts]
+echoframe = "echoframe.cli:main"
+
+[dependency-groups]
+dev = ["cryptography", "pytest"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["echoframe"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]

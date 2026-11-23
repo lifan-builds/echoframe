@@ -50,9 +50,9 @@ Contrary to blogs claiming Echo devices lack per-device DNS settings, `KeplerSet
 
 ### Layer B — Automated 3-Hour `"Start Photo Frame"` Cloud Routines
 
-Schedule 5 daytime routines (`07:30`, `10:35`, `13:40`, `16:45`, `19:50`) executing the custom command `"start photo frame"` on each Echo Show—either in the Alexa mobile app (*More -> Routines -> +*) or programmatically via `scripts/configure_alexa_ad_free.py --apply-routines`.
+Schedule 5 daytime routines (`07:30`, `10:35`, `13:40`, `16:45`, `19:50`) executing the custom command `"start photo frame"` on each Echo Show—either in the Alexa mobile app (*More -> Routines -> +*) or programmatically via `python3 -m echoframe.configure_alexa_ad_free --apply-routines`.
 
 Verify both layers at any time:
 ```bash
-python3 scripts/configure_alexa_ad_free.py --verify-dns <YOUR_DNS_OR_ROUTER_IP>
+uvx --from git+https://github.com/lifan-builds/echoframe echoframe ad-check --dns <YOUR_DNS_OR_ROUTER_IP>
 ```

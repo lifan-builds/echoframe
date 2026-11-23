@@ -14,7 +14,7 @@ import struct
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
-from scripts.instant_share_group import P, Q, G
+from echoframe.instant_share_group import P, Q, G
 
 
 def unsigned(n):

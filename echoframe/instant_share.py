@@ -1,4 +1,4 @@
-"""Experimental account-free Silk controller. Run: python3 -m scripts.instant_share --help.
+"""Experimental account-free Silk controller. Run: python3 -m echoframe.instant_share --help.
 
 Uses normal displayed-PIN pairing; no brute force, APK installation or exploit.
 Pairing keys stay in a private file outside this repository, never in stdout.
@@ -19,7 +19,7 @@ import time
 from urllib.parse import urlsplit
 import uuid
 
-from scripts.instant_share_crypto import Participant, decrypt_message, encode, encrypt_message, salted_key, timestamp
+from echoframe.instant_share_crypto import Participant, decrypt_message, encode, encrypt_message, salted_key, timestamp
 
 DEFAULT_STATE = Path.home() / ".local/share/alexa-photos/echo-show-silk.json"
 

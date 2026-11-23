@@ -42,16 +42,15 @@ import uuid
 import numpy as np
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageOps
 
-ROOT = Path(__file__).resolve().parents[1]
-PROFILE_PATH = ROOT / "private" / "profile.json"
+PROFILE_PATH = Path.cwd() / "private" / "profile.json"
 PROFILE: Dict[str, Any] = json.loads(PROFILE_PATH.read_text(encoding="utf-8")) if PROFILE_PATH.is_file() else {}
 
 CURATOR_REPO = Path(PROFILE["baby_repo"]) if PROFILE.get("baby_repo") else None
-DEFAULT_CATALOG = Path(PROFILE["catalog_path"]) if PROFILE.get("catalog_path") else (ROOT / "data/curation_catalog.json")
-DEFAULT_USB_ORIGINALS = Path(PROFILE["usb_originals_dir"]) if PROFILE.get("usb_originals_dir") else (ROOT / "data/usb_originals")
-DEFAULT_USB_DAEMON = Path(PROFILE["usb_daemon_dir"]) if PROFILE.get("usb_daemon_dir") else (ROOT / "data/usb_daemon")
-DEFAULT_OUT_DIR = ROOT / "data/album"
-DEFAULT_VISION_CACHE = ROOT / "data/ambient_vision_cache.json"
+DEFAULT_CATALOG = Path(PROFILE["catalog_path"]) if PROFILE.get("catalog_path") else (Path.cwd() / "data/curation_catalog.json")
+DEFAULT_USB_ORIGINALS = Path(PROFILE["usb_originals_dir"]) if PROFILE.get("usb_originals_dir") else (Path.cwd() / "data/usb_originals")
+DEFAULT_USB_DAEMON = Path(PROFILE["usb_daemon_dir"]) if PROFILE.get("usb_daemon_dir") else (Path.cwd() / "data/usb_daemon")
+DEFAULT_OUT_DIR = Path.cwd() / "data/album"
+DEFAULT_VISION_CACHE = Path.cwd() / "data/ambient_vision_cache.json"
 DEFAULT_GATEWAY = os.environ.get("OPENAI_BASE_URL") or PROFILE.get("openai_base_url") or "https://api.openai.com/v1"
 GATEWAY_TOKEN = os.environ.get("OPENAI_API_KEY") or PROFILE.get("openai_api_key") or ""
 DEFAULT_VISION_MODEL = os.environ.get("VISION_MODEL") or PROFILE.get("vision_model") or "gpt-4.1-mini"
@@ -1584,8 +1583,8 @@ def run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
     return manifest["stats"]
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
+def main(argv: Optional[List[str]] = None, prog: Optional[str] = None) -> None:
+    parser = argparse.ArgumentParser(prog=prog, description=__doc__)
     parser.add_argument("--source-dir", type=Path, default=None, help="Plain directory of iPhone/camera photos to scan & curate directly")
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     parser.add_argument("--usb-originals", type=Path, default=DEFAULT_USB_ORIGINALS)
@@ -1598,7 +1597,7 @@ def main() -> None:
     parser.add_argument("--target-count", type=int, default=None, help="Optional cap on curated photos (default: every photo passing the quality gate)")
     parser.add_argument("--limit", type=int, default=None, help="Optional candidate limit for smoke test")
     parser.add_argument("--upgrade-originals", action="store_true", help="Upgrade thumb_640 photos to full_2048 via live USBCameraBridge")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     run_pipeline(args)
 
 

@@ -36,10 +36,10 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.export_amazon_photos import sha256_file, write_json_atomic  # noqa: E402
-DEFAULT_ALBUM_DIR = ROOT / "data" / "album"
-DEFAULT_STAGE_DIR = ROOT / "data" / "export" / "cloud_stage"
-DEFAULT_SYNC_STATE = ROOT / "data" / "export" / "cloud_sync_state.json"
+from echoframe.export_amazon_photos import sha256_file, write_json_atomic  # noqa: E402
+DEFAULT_ALBUM_DIR = Path.cwd() / "data" / "album"
+DEFAULT_STAGE_DIR = Path.cwd() / "data" / "export" / "cloud_stage"
+DEFAULT_SYNC_STATE = Path.cwd() / "data" / "export" / "cloud_sync_state.json"
 DEFAULT_BUCKET_NAME = "alexa-photos-private"
 DEFAULT_KEY_FILE = Path.home() / ".local" / "share" / "alexa-photos" / "cloud_access_key"
 

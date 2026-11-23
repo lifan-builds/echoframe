@@ -5,7 +5,7 @@ import unittest
 
 from PIL import Image
 
-from scripts.extract_iphone_album import normalize_vision_result, scan_photo_folder, select_curated_winners
+from echoframe.extract_iphone_album import normalize_vision_result, scan_photo_folder, select_curated_winners
 
 
 def make_item(lid, date, dhash, tags=()):

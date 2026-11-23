@@ -8,7 +8,7 @@ from urllib.request import ProxyHandler, Request, build_opener
 
 import numpy as np
 
-from scripts.serve_album import AlbumServer
+from echoframe.serve_album import AlbumServer
 
 
 class AlbumServerTests(unittest.TestCase):
@@ -60,7 +60,7 @@ class AlbumServerTests(unittest.TestCase):
             "/photos/%2e%2e%2foutside.jpg",
             "/photos/linked.jpg",
             "/photos/secret.txt",
-            "/scripts/serve_album.py",
+            "/echoframe/serve_album.py",
             "/photos/%2fetc%2fpasswd",
         ]:
             with self.subTest(path=path), self.assertRaises(HTTPError) as error:

@@ -41,12 +41,12 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.extract_iphone_album import compose_gallery_matte, parse_iso_dt  # noqa: E402
-from scripts.serve_album import is_slide_hidden, load_hidden_ids  # noqa: E402
-DEFAULT_ALBUM_DIR = ROOT / "data" / "album"
-DEFAULT_EXPORT_DIR = ROOT / "data" / "export" / "amazon_photos_ambient_mix"
-DEFAULT_DELTA_DIR = ROOT / "data" / "export" / "amazon_photos_delta"
-DEFAULT_SYNC_STATE = ROOT / "data" / "export" / "amazon_photos_sync_state.json"
+from echoframe.extract_iphone_album import compose_gallery_matte, parse_iso_dt  # noqa: E402
+from echoframe.serve_album import is_slide_hidden, load_hidden_ids  # noqa: E402
+DEFAULT_ALBUM_DIR = Path.cwd() / "data" / "album"
+DEFAULT_EXPORT_DIR = Path.cwd() / "data" / "export" / "amazon_photos_ambient_mix"
+DEFAULT_DELTA_DIR = Path.cwd() / "data" / "export" / "amazon_photos_delta"
+DEFAULT_SYNC_STATE = Path.cwd() / "data" / "export" / "amazon_photos_sync_state.json"
 
 AMAZON_PHOTOS_FREE_TIER_BYTES = 5 * 1024 * 1024 * 1024  # 5 GiB
 AMAZON_PHOTOS_ALBUMS_URL = "https://www.amazon.com/photos/albums"
@@ -391,8 +391,8 @@ def export_amazon_photos_bundle(
     }
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
+def main(argv: Optional[List[str]] = None, prog: Optional[str] = None) -> None:
+    parser = argparse.ArgumentParser(prog=prog, description=__doc__)
     parser.add_argument("--album-dir", type=Path, default=DEFAULT_ALBUM_DIR)
     parser.add_argument("--export-dir", type=Path, default=DEFAULT_EXPORT_DIR)
     parser.add_argument("--delta-dir", type=Path, default=DEFAULT_DELTA_DIR)
@@ -418,7 +418,7 @@ def main() -> None:
         action="store_true",
         help="Explicit opt-in: open Amazon Photos Albums in your default browser and reveal the upload folder",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     summary = export_amazon_photos_bundle(
         album_dir=args.album_dir,
