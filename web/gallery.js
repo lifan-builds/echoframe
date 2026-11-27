@@ -9,8 +9,19 @@
   let selectedChannel = 'smart_frame';
   let searchResults = null;
   let activeSearchQuery = '';
+  let searchError = null;
+  let searchSeq = 0;
   let inspectedSlide = null;
   let toastTimer = null;
+
+  function clearSearchState() {
+    searchSeq += 1;
+    searchResults = null;
+    activeSearchQuery = '';
+    searchError = null;
+    el('search-input').value = '';
+    el('clear-search').hidden = true;
+  }
 
   function showToast(msg) {
     const node = el('toast');
@@ -89,11 +100,12 @@
 
     for (const ch of channels) {
       if (ch.id === 'search') continue;
+      const isSelected = searchResults === null && searchError === null && selectedChannel === ch.id;
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'channel-tab' + (searchResults === null && selectedChannel === ch.id ? ' is-active' : '');
+      btn.className = 'channel-tab' + (isSelected ? ' is-active' : '');
       btn.setAttribute('role', 'tab');
-      btn.setAttribute('aria-selected', String(searchResults === null && selectedChannel === ch.id));
+      btn.setAttribute('aria-selected', String(isSelected));
       const labelSpan = document.createElement('span');
       labelSpan.textContent = ch.name;
       const countSpan = document.createElement('span');
@@ -101,10 +113,7 @@
       countSpan.textContent = String(ch.count);
       btn.append(labelSpan, countSpan);
       btn.onclick = () => {
-        searchResults = null;
-        activeSearchQuery = '';
-        el('search-input').value = '';
-        el('clear-search').hidden = true;
+        clearSearchState();
         selectedChannel = ch.id;
         renderAll();
       };
@@ -115,19 +124,37 @@
   function renderWall() {
     const wall = el('photo-wall');
     wall.innerHTML = '';
+    const viewCount = el('view-count');
+    const emptyState = el('empty-state');
+    const searchErrorBox = el('search-error');
+    const chObj = (album && album.channels || []).find((c) => c.id === selectedChannel);
+    const cname = selectedChannel === 'hidden' ? 'Hidden' : (chObj ? chObj.name : 'Gallery');
+
+    if (searchError !== null) {
+      viewCount.textContent = `Search failed for “${searchError.query}”`;
+      viewCount.classList.add('is-error');
+      el('cast-label').textContent = selectedChannel === 'hidden' ? 'Cast Ambient Mix' : `Cast ${cname} to Display`;
+      el('search-error-title').textContent = 'Search unavailable';
+      el('search-error-detail').textContent =
+        `Could not search for “${searchError.query}” (${searchError.message}). Check that the EchoFrame server is running and try again.`;
+      emptyState.hidden = true;
+      searchErrorBox.hidden = false;
+      return;
+    }
+
+    viewCount.classList.remove('is-error');
+    searchErrorBox.hidden = true;
     const items = slidesForView();
 
     if (searchResults !== null) {
-      el('view-count').textContent = `${items.length} semantic matches for “${activeSearchQuery}”`;
+      viewCount.textContent = `${items.length} semantic matches for “${activeSearchQuery}”`;
       el('cast-label').textContent = `Cast “${activeSearchQuery}” to Display`;
     } else {
-      const chObj = (album && album.channels || []).find((c) => c.id === selectedChannel);
-      const cname = selectedChannel === 'hidden' ? 'Hidden' : (chObj ? chObj.name : 'Gallery');
-      el('view-count').textContent = `${items.length} slides in ${cname}`;
+      viewCount.textContent = `${items.length} slides in ${cname}`;
       el('cast-label').textContent = selectedChannel === 'hidden' ? 'Cast Ambient Mix' : `Cast ${cname} to Display`;
     }
 
-    el('empty-state').hidden = items.length > 0;
+    emptyState.hidden = items.length > 0;
 
     for (const slide of items) {
       const fig = document.createElement('figure');
@@ -191,20 +218,32 @@
   async function runSemanticSearch(query) {
     const q = query.trim();
     if (!q) {
-      searchResults = null;
-      activeSearchQuery = '';
-      el('clear-search').hidden = true;
+      clearSearchState();
       renderAll();
       return;
     }
+    const seq = ++searchSeq;
+    searchError = null;
+    el('search-error').hidden = true;
+    el('view-count').classList.remove('is-error');
     el('view-count').textContent = `Searching OpenAI embeddings for “${q}”…`;
     try {
       const data = await apiGet(`/api/search?q=${encodeURIComponent(q)}&limit=42`);
+      if (seq !== searchSeq) return;
       activeSearchQuery = q;
       searchResults = data.results || [];
       el('clear-search').hidden = false;
       renderAll();
     } catch (err) {
+      if (seq !== searchSeq) return;
+      activeSearchQuery = q;
+      searchResults = null;
+      searchError = {
+        query: q,
+        message: err && err.message ? err.message : 'network error',
+      };
+      el('clear-search').hidden = false;
+      renderAll();
       showToast('Search unavailable — check server connection.');
     }
   }
@@ -249,10 +288,18 @@
   };
 
   el('clear-search').onclick = () => {
-    el('search-input').value = '';
-    searchResults = null;
-    activeSearchQuery = '';
-    el('clear-search').hidden = true;
+    clearSearchState();
+    renderAll();
+  };
+
+  el('retry-search').onclick = () => {
+    if (!searchError || !searchError.query) return;
+    el('search-input').value = searchError.query;
+    runSemanticSearch(searchError.query);
+  };
+
+  el('dismiss-search-error').onclick = () => {
+    clearSearchState();
     renderAll();
   };
 

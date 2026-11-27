@@ -23,6 +23,20 @@
     return res.json();
   }
 
+  function renderConnectionError(detail) {
+    const card = el('now-playing');
+    if (card) card.classList.add('is-offline');
+    el('now-title').textContent = 'Frame status unavailable';
+    el('now-meta').textContent = detail || 'Connection lost — retrying…';
+
+    const list = el('heartbeat-list');
+    list.innerHTML = '';
+    const row = document.createElement('div');
+    row.className = 'row-item';
+    row.textContent = 'Unable to reach frame server — retrying…';
+    list.appendChild(row);
+  }
+
   async function sendControl(payload, toastMessage) {
     try {
       const resp = await fetch('/api/control', {
@@ -30,6 +44,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data = await resp.json();
       if (data.state) {
         state = data.state;
@@ -37,6 +52,7 @@
       }
       if (toastMessage) showToast(toastMessage);
     } catch (err) {
+      renderConnectionError('Check Wi-Fi — retrying…');
       showToast('Connection lost — check Wi-Fi.');
     }
   }
@@ -52,6 +68,8 @@
 
   function renderState() {
     if (!state) return;
+    const card = el('now-playing');
+    if (card) card.classList.remove('is-offline');
     const slides = state.slides || [];
     const matched = slides.find((s) => s.id === activeDisplaySlideId) || slides[0];
     if (matched) {
@@ -152,7 +170,7 @@
         list.appendChild(row);
       }
     } catch (err) {
-      // Keep UI responsive during brief network blips
+      renderConnectionError('Check Wi-Fi or server — retrying…');
     }
   }
 

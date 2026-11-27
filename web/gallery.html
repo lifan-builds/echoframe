@@ -64,6 +64,15 @@
       <h2>No matching slides in this view</h2>
       <p>Try another semantic phrase or switch back to Ambient Mix.</p>
     </div>
+
+    <div id="search-error" class="empty-state is-error" role="alert" hidden>
+      <h2 id="search-error-title">Search unavailable</h2>
+      <p id="search-error-detail">Could not reach the search endpoint. Check your local EchoFrame server connection and try again.</p>
+      <div class="empty-state-actions">
+        <button id="retry-search" class="btn btn-primary" type="button">Retry Search</button>
+        <button id="dismiss-search-error" class="btn" type="button">Back to Gallery</button>
+      </div>
+    </div>
   </main>
 
   <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-labelledby="lb-title" hidden>

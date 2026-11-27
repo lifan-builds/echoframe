@@ -73,9 +73,23 @@ class AlbumServerTests(unittest.TestCase):
         with self.get("/") as r:
             self.assertIn(b"Start album", r.read())
         with self.get("/gallery") as r:
-            self.assertIn(b"Home Gallery", r.read())
+            gallery_html = r.read()
+            self.assertIn(b"Home Gallery", gallery_html)
+            self.assertIn(b'id="search-error"', gallery_html)
         with self.get("/remote") as r:
-            self.assertIn(b"Frame Remote", r.read())
+            remote_html = r.read()
+            self.assertIn(b"Frame Remote", remote_html)
+            self.assertIn(b'id="now-playing"', remote_html)
+        with self.get("/gallery.js") as r:
+            gallery_js = r.read()
+            self.assertIn(b"Search failed for", gallery_js)
+        with self.get("/remote.js") as r:
+            remote_js = r.read()
+            self.assertIn(b"Frame status unavailable", remote_js)
+        with self.get("/app.css") as r:
+            app_css = r.read()
+            self.assertIn(b"minmax(min(290px, 100%), 1fr)", app_css)
+            self.assertIn(b"font-size: 16px;", app_css)
         with self.get("/api/ping") as r:
             self.assertTrue(json.load(r)["ok"])
         with self.get("/api/status") as r:

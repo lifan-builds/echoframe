@@ -230,7 +230,7 @@ select:focus-visible {
 
 .command-deck {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
   align-items: center;
   margin-bottom: 16px;
@@ -240,6 +240,8 @@ select:focus-visible {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  max-width: 100%;
   background: var(--surface);
   border: 1px solid var(--hairline-strong);
   border-radius: 12px;
@@ -258,7 +260,7 @@ select:focus-visible {
   border: 0;
   background: transparent;
   color: var(--ink);
-  font-size: 15px;
+  font-size: 16px;
   padding: 8px 4px;
 }
 .search-input::placeholder {
@@ -352,11 +354,15 @@ select:focus-visible {
 .live-banner strong {
   color: var(--ink);
 }
+.live-banner .is-error {
+  color: var(--danger);
+  font-weight: 600;
+}
 
 /* Editorial Photo Wall (respects diptych 16:10 wide plates vs singles) */
 .photo-wall {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(290px, 100%), 1fr));
   grid-auto-flow: dense;
   gap: 22px;
 }
@@ -447,6 +453,21 @@ select:focus-visible {
   margin: 0 0 8px;
   color: var(--ink);
 }
+.empty-state.is-error {
+  border-color: rgba(240, 140, 125, 0.45);
+  background: rgba(240, 140, 125, 0.06);
+}
+.empty-state.is-error h2 {
+  color: var(--danger);
+}
+.empty-state-actions {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 
 /* Lightbox Dialog */
 .lightbox {
@@ -532,7 +553,7 @@ select:focus-visible {
 
 .now-playing {
   display: grid;
-  grid-template-columns: 112px 1fr;
+  grid-template-columns: 112px minmax(0, 1fr);
   gap: 16px;
   align-items: center;
   padding: 14px;
@@ -540,6 +561,13 @@ select:focus-visible {
   background: var(--surface);
   border: 1px solid var(--hairline);
   box-shadow: var(--shadow-soft);
+}
+.now-playing.is-offline {
+  border-color: rgba(240, 140, 125, 0.45);
+  background: rgba(240, 140, 125, 0.06);
+}
+.now-playing.is-offline .now-copy h2 {
+  color: var(--danger);
 }
 
 .now-thumb {
@@ -677,6 +705,7 @@ select:focus-visible {
   bottom: 20px;
   right: 20px;
   z-index: 50;
+  max-width: calc(100vw - 32px);
   padding: 11px 16px;
   border-radius: 10px;
   background: var(--surface-raised);
@@ -695,10 +724,21 @@ select:focus-visible {
     padding: 18px 18px 48px;
   }
   .command-deck {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .search-form {
+    gap: 6px;
+    padding: 6px 6px 6px 10px;
+  }
+  .search-form .btn {
+    padding: 9px 12px;
   }
   .photo-tile.is-diptych {
     grid-column: span 1;
+  }
+  .toast {
+    left: 16px;
+    right: 16px;
   }
 }
 
