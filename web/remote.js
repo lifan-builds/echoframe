@@ -210,11 +210,15 @@
     const target = state.slides.find((s) => s.id === activeDisplaySlideId) || state.slides[0];
     if (!target) return;
     try {
-      await fetch('/api/hide', {
+      const response = await fetch('/api/hide', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: target.id, hidden: true }),
       });
+      if (!response.ok) {
+        showToast(`Failed to hide slide (HTTP ${response.status}).`);
+        return;
+      }
       activeDisplaySlideId = null;
       await refreshStatus();
       showToast('Hidden slide from ambient frame.');

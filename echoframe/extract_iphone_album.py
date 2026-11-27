@@ -5,9 +5,8 @@
 
 Pipeline stages:
 1. Filter `curation_catalog.json` to high-potential still images (~1,400 candidates).
-2. Run an OpenAI Vision Ambient Frame Pass (`gpt-6.1-sol`, `store: false`, `detail: low`)
-   through the local Quotaswitch gateway (`http://127.0.0.1:18455/v1`), checkpointing every
-   50 items to `data/ambient_vision_cache.json`.
+2. Run an OpenAI Vision Ambient Frame Pass (`store: false`, `detail: low`), checkpointing
+   every 50 items to `data/ambient_vision_cache.json`.
 3. Apply strict kitchen/living-room safety gates and keep every temporally diverse winner
    above the frame-score bar across 6 channels (`featured`, `family_felix`, `travel_outdoors`,
    `food_gatherings`, `scenic_art`, `pets`).
@@ -45,7 +44,13 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageOps
 
 PROFILE_PATH = Path.cwd() / "private" / "profile.json"
-PROFILE: Dict[str, Any] = json.loads(PROFILE_PATH.read_text(encoding="utf-8")) if PROFILE_PATH.is_file() else {}
+PROFILE: Dict[str, Any] = {}
+PROFILE_ERROR = None
+if PROFILE_PATH.is_file():
+    try:
+        PROFILE = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        PROFILE_ERROR = f"Invalid JSON in {PROFILE_PATH}: {exc}"
 
 CURATOR_REPO = Path(PROFILE["baby_repo"]) if PROFILE.get("baby_repo") else None
 DEFAULT_CATALOG = Path(PROFILE["catalog_path"]) if PROFILE.get("catalog_path") else (Path.cwd() / "data/curation_catalog.json")
@@ -1593,13 +1598,15 @@ def main(argv: Optional[List[str]] = None, prog: Optional[str] = None) -> None:
     parser.add_argument("--usb-daemon-dir", type=Path, default=DEFAULT_USB_DAEMON)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
     parser.add_argument("--cache", type=Path, default=DEFAULT_VISION_CACHE)
-    parser.add_argument("--gateway", default=DEFAULT_GATEWAY)
-    parser.add_argument("--model", default=DEFAULT_VISION_MODEL)
+    parser.add_argument("--gateway", default=DEFAULT_GATEWAY, help="API endpoint (OPENAI_BASE_URL, default: %(default)s)")
+    parser.add_argument("--model", default=DEFAULT_VISION_MODEL, help="Vision model (VISION_MODEL, default: %(default)s)")
     parser.add_argument("--workers", type=int, default=28)
     parser.add_argument("--target-count", type=int, default=None, help="Optional cap on curated photos (default: every photo passing the quality gate)")
     parser.add_argument("--limit", type=int, default=None, help="Optional candidate limit for smoke test")
     parser.add_argument("--upgrade-originals", action="store_true", help="Upgrade thumb_640 photos to full_2048 via live USBCameraBridge")
     args = parser.parse_args(argv)
+    if PROFILE_ERROR:
+        parser.error(PROFILE_ERROR)
     run_pipeline(args)
 
 

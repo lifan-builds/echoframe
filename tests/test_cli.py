@@ -1,7 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # Copyright (C) 2026 lifan-builds. EchoFrame; Section 7 attribution terms in ATTRIBUTION.md.
 import io
+import os
+from pathlib import Path
 import subprocess
+import sys
+import tempfile
 import unittest
 from contextlib import redirect_stdout
 from unittest import mock
@@ -24,6 +28,28 @@ class VersionTests(unittest.TestCase):
             cli.main(["--version"])
         self.assertEqual(exc.exception.code, 0)
         self.assertIn("Based on EchoFrame by lifan-builds (https://github.com/lifan-builds/echoframe)", out.getvalue())
+
+
+class CurateTests(unittest.TestCase):
+    def test_malformed_profile_allows_help_and_reports_execution_error(self):
+        with tempfile.TemporaryDirectory() as cwd:
+            profile = Path(cwd) / "private" / "profile.json"
+            profile.parent.mkdir()
+            profile.write_text("{")
+            env = dict(os.environ, PYTHONPATH=str(Path(cli.__file__).resolve().parents[1]))
+            env.pop("OPENAI_BASE_URL", None)
+            env.pop("VISION_MODEL", None)
+            command = [sys.executable, "-m", "echoframe.cli", "curate"]
+            help_result = subprocess.run(command + ["--help"], cwd=cwd, env=env, capture_output=True, text=True)
+            self.assertEqual(help_result.returncode, 0, help_result.stderr)
+            self.assertIn("https://api.openai.com/v1", help_result.stdout)
+            self.assertIn("gpt-4.1-mini", help_result.stdout)
+
+            result = subprocess.run(command, cwd=cwd, env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("Invalid JSON in", result.stderr)
+            self.assertIn("private/profile.json", result.stderr)
+            self.assertNotIn("Traceback", result.stderr)
 
 
 class AdCheckTests(unittest.TestCase):

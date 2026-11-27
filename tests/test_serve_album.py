@@ -95,6 +95,47 @@ class AlbumServerTests(unittest.TestCase):
                     with self.opener.open(link) as destination:
                         self.assertEqual(destination.read(), (WEB / (target + ".html")).read_bytes())
 
+    def test_remote_keeps_current_slide_after_rejected_hide(self):
+        script = """
+            const assert = require('node:assert/strict');
+            const nodes = {};
+            const element = () => ({ classList: { remove() {} }, style: {}, append() {}, appendChild() {} });
+            global.document = {
+                getElementById: id => nodes[id] ??= element(),
+                querySelectorAll: () => [],
+                createElement: element,
+            };
+            global.setInterval = global.setTimeout = () => {};
+            const slides = [{ id: 'first' }, { id: 'current' }];
+            const clients = [{ role: 'display', current_slide: 'current' }];
+            let status;
+            let stateReads = 0;
+            global.fetch = async (path, options) => {
+                if (path === '/api/state') {
+                    stateReads++;
+                    return { ok: true, json: () => ({ slides }) };
+                }
+                if (path === '/api/status') return { ok: true, json: () => ({ clients }) };
+                assert.equal(path, '/api/hide');
+                assert.deepEqual(JSON.parse(options.body), { id: 'current', hidden: true });
+                return { ok: status === 200, status };
+            };
+            require(process.argv[1]);
+            setImmediate(async () => {
+                for (status of [404, 500]) {
+                    await nodes['btn-hide-current'].onclick();
+                    assert.match(nodes.toast.textContent, /Failed to hide slide/);
+                    assert.ok(nodes.toast.textContent.includes(String(status)));
+                    assert.equal(stateReads, 1);
+                }
+                status = 200;
+                await nodes['btn-hide-current'].onclick();
+                assert.equal(stateReads, 2);
+                assert.equal(nodes.toast.textContent, 'Hidden slide from ambient frame.');
+            });
+        """
+        subprocess.run(["node", "-e", script, str(WEB / "remote.js")], check=True)
+
     def test_assets_and_diagnostics(self):
         with self.get("/") as r:
             self.assertIn(b"Start album", r.read())
