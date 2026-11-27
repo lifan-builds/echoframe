@@ -17,9 +17,14 @@
     </div>
     <nav class="nav-links" aria-label="Views">
       <a class="nav-pill" href="/?autostart=1">Display Frame</a>
-      <a class="nav-pill" href="/gallery">Gallery</a>
-      <a class="nav-pill" href="/remote" aria-current="page">Pocket Remote</a>
+      <a class="nav-pill" id="other-view" href="./gallery">Gallery</a>
+      <a class="nav-pill" href="" aria-current="page">Pocket Remote</a>
     </nav>
+    <script>
+      if (location.pathname.endsWith(".html")) {
+        document.getElementById("other-view").href += ".html";
+      }
+    </script>
   </header>
 
   <main class="remote-shell">

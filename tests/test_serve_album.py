@@ -2,15 +2,18 @@
 # Copyright (C) 2026 lifan-builds. EchoFrame; Section 7 attribution terms in ATTRIBUTION.md.
 import json
 from pathlib import Path
+import re
+import subprocess
 import tempfile
 import threading
 import unittest
 from urllib.error import HTTPError
+from urllib.parse import urljoin
 from urllib.request import ProxyHandler, Request, build_opener
 
 import numpy as np
 
-from echoframe.serve_album import AlbumServer
+from echoframe.serve_album import WEB, AlbumServer
 
 
 class AlbumServerTests(unittest.TestCase):
@@ -68,6 +71,29 @@ class AlbumServerTests(unittest.TestCase):
             with self.subTest(path=path), self.assertRaises(HTTPError) as error:
                 self.get(path)
             self.assertEqual(error.exception.code, 404)
+
+    def test_gallery_remote_navigation(self):
+        evaluate_link = """
+            const [page, href, script] = process.argv.slice(1);
+            const location = new URL(page);
+            const link = { href: new URL(href, location).href };
+            const document = { getElementById: id => ({ "other-view": link })[id] };
+            eval(script);
+            process.stdout.write(link.href);
+        """
+        for page, target in [("gallery", "remote"), ("remote", "gallery")]:
+            for url in [self.url + "/" + page, (WEB / (page + ".html")).as_uri()]:
+                with self.subTest(url=url), self.opener.open(url) as response:
+                    html = response.read().decode()
+                    href = re.search(r'id="other-view" href="([^"]+)"', html)[1]
+                    script = re.search(r"<script>(.*?)</script>", html, re.S)[1]
+                    link = subprocess.check_output(
+                        ["node", "-e", evaluate_link, url, href, script], text=True
+                    )
+                    expected = target + ".html" if url.endswith(".html") else target
+                    self.assertEqual(link, urljoin(url, expected))
+                    with self.opener.open(link) as destination:
+                        self.assertEqual(destination.read(), (WEB / (target + ".html")).read_bytes())
 
     def test_assets_and_diagnostics(self):
         with self.get("/") as r:
